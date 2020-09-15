@@ -10,6 +10,7 @@ public class ThirdPersonMovement : MonoBehaviour
     public event Action StartJumping = delegate { };
     public event Action Landed = delegate { };
     public event Action StartSprinting = delegate { };
+    public event Action StartAttacking = delegate { };
 
     [SerializeField] CharacterController controller;
     [SerializeField] Transform cam;
@@ -22,11 +23,36 @@ public class ThirdPersonMovement : MonoBehaviour
     [SerializeField] float _jumpHeight = 1f;
     [SerializeField] float _gravityValue = -9.81f;
 
+    [SerializeField] AbilityLoadout _abilityLoadout;
+    [SerializeField] Ability _startingAbility;
+    [SerializeField] Ability _newAbilityToTest;
+
+    [SerializeField] Transform _targetDummy = null;
+
+    public Transform CurrentTarget { get; private set; }
+
     float _turnSmoothVelocity;
     bool _isMoving = false;
     bool _isSprinting = false;
     bool _isGrounded = false;
     bool _allowJump = true;
+    bool _allowAttack = true;
+    bool _isAttacking = false;
+
+    private void Awake()
+    {
+        if (_startingAbility != null)
+        {
+            _abilityLoadout?.EquipAbility(_startingAbility);
+        }
+    }
+
+    //TODO consider breaking into separate scripts
+    public void SetTarget(Transform newTarget)
+    {
+        CurrentTarget = newTarget;
+    }
+
 
     private void Start()
     {
@@ -35,6 +61,18 @@ public class ThirdPersonMovement : MonoBehaviour
 
     private void Update()
     {
+        //equip new weapon
+        if (Input.GetKeyDown(KeyCode.Tab))
+        {
+            _abilityLoadout.EquipAbility(_newAbilityToTest);
+        }
+        //set a target, for testing
+        if (Input.GetKeyDown(KeyCode.Mouse2))
+        {
+            //target the dummy for now
+            SetTarget(_targetDummy);
+        }
+
         _isGrounded = controller.isGrounded;
         if(_isGrounded && playerVelocity.y < 0)
         {
@@ -80,6 +118,20 @@ public class ThirdPersonMovement : MonoBehaviour
                 CheckIfLanded();
                 _allowJump = true;
             }
+
+            if (_allowAttack == true)
+            {
+                if (Input.GetKeyDown(KeyCode.Mouse0) && _isAttacking == false)
+                {
+                    _isAttacking = true;
+                    _abilityLoadout.UseEquippedAbility(CurrentTarget);
+                    CheckIfAttacking();
+                }
+            }
+            else
+            {
+                CheckIfStoppedMoving();
+            }
         }
         playerVelocity.y += _gravityValue * Time.deltaTime;
         controller.Move(playerVelocity * Time.deltaTime);
@@ -107,8 +159,14 @@ public class ThirdPersonMovement : MonoBehaviour
             Idle?.Invoke();
             Debug.Log("Stopped");
         }
+        if (_allowAttack == false)
+        {
+            StartCoroutine("Attack");
+            Debug.Log("Stopped");
+        }
         _isMoving = false;
         _isSprinting = false;
+        _allowAttack = true;
     }
 
     private void CheckIfSprinting()
@@ -140,5 +198,22 @@ public class ThirdPersonMovement : MonoBehaviour
             Debug.Log("Jumped");
         }
         _allowJump = false;
+    }
+
+    private void CheckIfAttacking()
+    {
+        if(_allowAttack == true && _isGrounded)
+        {
+            StartAttacking?.Invoke();
+            Debug.Log("Attacking");
+        }
+        _allowAttack = false; 
+    }
+
+    IEnumerator Attack()
+    {
+        yield return new WaitForSeconds(1.2f);
+        _isAttacking = false;
+        Idle?.Invoke();
     }
 }
