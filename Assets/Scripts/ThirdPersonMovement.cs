@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using System;
 
 public class ThirdPersonMovement : MonoBehaviour
@@ -29,9 +30,14 @@ public class ThirdPersonMovement : MonoBehaviour
 
     [SerializeField] Transform _targetDummy = null;
 
+    [SerializeField] Canvas _playerHUD;
+
+    [SerializeField] Health _health;
+    [SerializeField] Stamina _stamina;
+
     public Transform CurrentTarget { get; private set; }
 
-    float _turnSmoothVelocity;
+    float _turnSmoothVelocity = 0f;
     bool _isMoving = false;
     bool _isSprinting = false;
     bool _isGrounded = false;
@@ -61,7 +67,23 @@ public class ThirdPersonMovement : MonoBehaviour
 
     private void Update()
     {
-        //equip new weapon
+        if(_health._currentHealth > 0)
+        {
+            Control();
+        }
+        if (_health._currentHealth <= 0)
+        {
+            Release();
+        }
+    }
+
+    private void Control()
+    {
+        _playerHUD.enabled = true;
+
+        //equip new weapon 
+        //TODO- add new weapons later 
+        //Will have to use new model due to the current weapon being part of the current model
         if (Input.GetKeyDown(KeyCode.Tab))
         {
             _abilityLoadout.EquipAbility(_newAbilityToTest);
@@ -74,7 +96,7 @@ public class ThirdPersonMovement : MonoBehaviour
         }
 
         _isGrounded = controller.isGrounded;
-        if(_isGrounded && playerVelocity.y < 0)
+        if (_isGrounded && playerVelocity.y < 0)
         {
             playerVelocity.y = 0f;
         }
@@ -82,7 +104,7 @@ public class ThirdPersonMovement : MonoBehaviour
         float vertical = Input.GetAxisRaw("Vertical");
         Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
 
-        if(direction.magnitude >= 0.1f)
+        if (direction.magnitude >= 0.1f)
         {
             CheckIfStartedMoving();
             float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + cam.eulerAngles.y;
@@ -121,7 +143,7 @@ public class ThirdPersonMovement : MonoBehaviour
 
             if (_allowAttack == true)
             {
-                if (Input.GetKeyDown(KeyCode.Mouse0) && _isAttacking == false)
+                if (Input.GetKeyDown(KeyCode.Mouse0) && _isAttacking == false && _stamina._currentStamina >= 10)
                 {
                     _isAttacking = true;
                     _abilityLoadout.UseEquippedAbility(CurrentTarget);
@@ -135,6 +157,11 @@ public class ThirdPersonMovement : MonoBehaviour
         }
         playerVelocity.y += _gravityValue * Time.deltaTime;
         controller.Move(playerVelocity * Time.deltaTime);
+    }
+
+    private void Release()
+    {
+        _playerHUD.enabled = false;
     }
 
     private void CheckIfStartedMoving()
@@ -206,6 +233,7 @@ public class ThirdPersonMovement : MonoBehaviour
         {
             StartAttacking?.Invoke();
             Debug.Log("Attacking");
+            _stamina.DecreaseStamina(10);
         }
         _allowAttack = false; 
     }
