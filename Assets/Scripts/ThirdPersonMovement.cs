@@ -12,6 +12,9 @@ public class ThirdPersonMovement : MonoBehaviour
     public event Action Landed = delegate { };
     public event Action StartSprinting = delegate { };
     public event Action StartAttacking = delegate { };
+    public event Action StartBlocking = delegate { };
+    public event Action Damaged = delegate { };
+    public event Action DamageBlocked = delegate { };
 
     [SerializeField] CharacterController controller;
     [SerializeField] Transform cam;
@@ -34,16 +37,24 @@ public class ThirdPersonMovement : MonoBehaviour
 
     [SerializeField] Health _health;
     [SerializeField] Stamina _stamina;
+    [SerializeField] Bullet _bullet;
 
     public Transform CurrentTarget { get; private set; }
 
     float _turnSmoothVelocity = 0f;
+    bool _allowMove = true;
     bool _isMoving = false;
     bool _isSprinting = false;
     bool _isGrounded = false;
     bool _allowJump = true;
     bool _allowAttack = true;
     bool _isAttacking = false;
+    bool _allowBlock = true;
+    bool _isDamaged = false;
+    public bool _isBlocking = false;
+    public bool _attackBlocked = false;
+
+    RaycastHit hit;
 
     private void Awake()
     {
@@ -67,9 +78,14 @@ public class ThirdPersonMovement : MonoBehaviour
 
     private void Update()
     {
-        if(_health._currentHealth > 0)
+        if (_health._currentHealth > 0)
         {
             Control();
+            if (_health._playerDamaged)
+            {
+                CheckIfDamaged();
+            }
+            CheckIfDamageBlocked();
         }
         if (_health._currentHealth <= 0)
         {
@@ -104,7 +120,7 @@ public class ThirdPersonMovement : MonoBehaviour
         float vertical = Input.GetAxisRaw("Vertical");
         Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
 
-        if (direction.magnitude >= 0.1f)
+        if (direction.magnitude >= 0.1f && _allowMove)
         {
             CheckIfStartedMoving();
             float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + cam.eulerAngles.y;
@@ -120,6 +136,11 @@ public class ThirdPersonMovement : MonoBehaviour
             else
             {
                 controller.Move(moveDir.normalized * _speed * Time.deltaTime);
+            }
+            if (Input.GetKeyUp(KeyCode.LeftShift))
+            {
+                _isSprinting = true;
+                CheckIfStoppedMoving();
             }
         }
         else
@@ -141,6 +162,32 @@ public class ThirdPersonMovement : MonoBehaviour
                 _allowJump = true;
             }
 
+            if (_allowBlock)
+            {
+                if (Input.GetKey(KeyCode.Mouse1) && _stamina._currentStamina >= 10)
+                {
+                    _allowMove = false;
+                    CheckIfBlocking();
+                }
+                else
+                {
+                    _allowMove = true;
+                }
+            }
+            else
+            {
+                CheckIfStoppedMoving();
+            }
+
+            if (_isBlocking && Physics.Raycast(this.transform.position, this.transform.TransformDirection(Vector3.forward), out hit, 50f))
+            {
+                _attackBlocked = true;
+            }
+            else
+            {
+                _attackBlocked = false;
+            }
+
             if (_allowAttack == true)
             {
                 if (Input.GetKeyDown(KeyCode.Mouse0) && _isAttacking == false && _stamina._currentStamina >= 10)
@@ -154,6 +201,7 @@ public class ThirdPersonMovement : MonoBehaviour
             {
                 CheckIfStoppedMoving();
             }
+
         }
         playerVelocity.y += _gravityValue * Time.deltaTime;
         controller.Move(playerVelocity * Time.deltaTime);
@@ -186,14 +234,27 @@ public class ThirdPersonMovement : MonoBehaviour
             Idle?.Invoke();
             Debug.Log("Stopped");
         }
+        if (_isBlocking == true)
+        {
+            Idle?.Invoke();
+            Debug.Log("Stopped");
+        }
         if (_allowAttack == false)
         {
             StartCoroutine("Attack");
             Debug.Log("Stopped");
         }
+        if (_isDamaged)
+        {
+            StartCoroutine("Damage");
+            Debug.Log("Stopped");
+        }
         _isMoving = false;
         _isSprinting = false;
+        _isBlocking = false;
+        _allowBlock = true;
         _allowAttack = true;
+        _isDamaged = false;
     }
 
     private void CheckIfSprinting()
@@ -238,10 +299,51 @@ public class ThirdPersonMovement : MonoBehaviour
         _allowAttack = false; 
     }
 
+    private void CheckIfBlocking()
+    {
+        if (_isBlocking == false && _allowMove == false)
+        {
+            StartBlocking?.Invoke();
+            Debug.Log("Blocking");
+        }
+        _isBlocking = true;
+        _allowBlock = false;
+    }
+
+    private void CheckIfDamaged()
+    {
+        if (_health._playerDamaged)
+        {
+            Damaged?.Invoke();
+            Debug.Log("Damaged");
+        }
+        _health._playerDamaged = false;
+        _isDamaged = true;
+        if(_health._playerDamaged == false)
+        {
+            CheckIfStoppedMoving();
+        }
+    }
+
+    private void CheckIfDamageBlocked()
+    {
+        if (_stamina._playerBlocked && _isAttacking == false)
+        {
+            DamageBlocked?.Invoke();
+        }
+        _stamina._playerBlocked = false;
+    }
+
     IEnumerator Attack()
     {
         yield return new WaitForSeconds(1.2f);
         _isAttacking = false;
+        Idle?.Invoke();
+    }
+
+    IEnumerator Damage()
+    {
+        yield return new WaitForSeconds(1.0f);
         Idle?.Invoke();
     }
 }

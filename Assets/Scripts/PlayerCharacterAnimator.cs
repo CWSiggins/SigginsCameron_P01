@@ -6,6 +6,7 @@ using UnityEngine;
 public class PlayerCharacterAnimator : MonoBehaviour
 {
     [SerializeField] ThirdPersonMovement _thirdPersonMovement = null;
+    [SerializeField] Health _health = null;
     //these names MUST allign with the naming in the Animator node
     const string IdleState = "Idle";
     const string RunState = "Run";
@@ -13,6 +14,10 @@ public class PlayerCharacterAnimator : MonoBehaviour
     const string FallState = "Falling";
     const string SprintState = "Sprint";
     const string AttackState = "Attack";
+    const string BlockState = "Block";
+    const string DeadState = "Dead";
+    const string DamageState = "Damage";
+    const string DamageBlockedState = "DamageBlocked";
 
     Animator _animator = null;
 
@@ -50,6 +55,27 @@ public class PlayerCharacterAnimator : MonoBehaviour
     {
         _animator.CrossFadeInFixedTime(AttackState, .2f);
     }
+
+    public void OnBlocking()
+    {
+        _animator.CrossFadeInFixedTime(BlockState, .2f);
+    }
+
+    public void OnDeath()
+    {
+        _animator.CrossFadeInFixedTime(DeadState, .2f);
+    }
+
+    public void OnDamage()
+    {
+        _animator.CrossFadeInFixedTime(DamageState, .2f);
+    }
+
+    public void OnDamageBlocked()
+    {
+        _animator.CrossFadeInFixedTime(DamageBlockedState, .2f);
+    }
+
     private void OnEnable()
     {
         _thirdPersonMovement.Idle += OnIdle;
@@ -58,6 +84,10 @@ public class PlayerCharacterAnimator : MonoBehaviour
         _thirdPersonMovement.Landed += OnFalling;
         _thirdPersonMovement.StartSprinting += OnStartSprinting;
         _thirdPersonMovement.StartAttacking += OnAttacking;
+        _thirdPersonMovement.StartBlocking += OnBlocking;
+        _health.Dead += OnDeath;
+        _thirdPersonMovement.Damaged += OnDamage;
+        _thirdPersonMovement.DamageBlocked += OnDamageBlocked;
     }
 
     private void OnDisable()
@@ -68,5 +98,9 @@ public class PlayerCharacterAnimator : MonoBehaviour
         _thirdPersonMovement.Landed -= OnFalling;
         _thirdPersonMovement.StartSprinting -= OnStartSprinting;
         _thirdPersonMovement.StartAttacking -= OnAttacking;
+        _thirdPersonMovement.StartBlocking -= OnBlocking;
+        _health.Dead -= OnDeath;
+        _thirdPersonMovement.Damaged -= OnDamage;
+        _thirdPersonMovement.DamageBlocked -= OnDamageBlocked;
     }
 }

@@ -14,6 +14,7 @@ public class Stamina : MonoBehaviour
     private float _staminaRegenTimer = 0.0f;
 
     public float _currentStamina;
+    public bool _playerBlocked = false;
 
     private void Start()
     {
@@ -39,6 +40,7 @@ public class Stamina : MonoBehaviour
     public void DecreaseStamina(int amount)
     {
         _currentStamina -= amount;
+        _playerBlocked = true;
         Debug.Log("Player's Stamina: " + _currentStamina);
     }
 

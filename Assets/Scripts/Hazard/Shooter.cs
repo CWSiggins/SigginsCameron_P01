@@ -7,6 +7,8 @@ public class Shooter : MonoBehaviour
 {
     [SerializeField] Transform _player;
 
+    [SerializeField] Health _health;
+
     [SerializeField] float _range = 50.0f;
     [SerializeField] float _bulletImpulse = 20.0f;
 
@@ -32,7 +34,7 @@ public class Shooter : MonoBehaviour
 
     private void Shoot()
     {
-        if (_inRange)
+        if (_inRange && _health._currentHealth > 0)
         {
             Rigidbody _bullet = (Rigidbody)Instantiate(_projectile, transform.position + transform.forward, transform.rotation);
             _bullet.AddForce(transform.forward * _bulletImpulse, ForceMode.Impulse);

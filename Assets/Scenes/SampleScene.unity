@@ -526,6 +526,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _player: {fileID: 412484225}
+  _health: {fileID: 412484231}
   _range: 5
   _bulletImpulse: 20
   _inRange: 0
@@ -1073,6 +1074,9 @@ MonoBehaviour:
   _playerHUD: {fileID: 1264929847}
   _health: {fileID: 412484231}
   _stamina: {fileID: 412484232}
+  _bullet: {fileID: 6885850422879354649, guid: 2ee2b7a3f2a26f84eaeedb6bbaee83f3, type: 3}
+  _isBlocking: 0
+  _attackBlocked: 0
 --- !u!143 &412484227
 CharacterController:
   m_ObjectHideFlags: 0
@@ -1137,6 +1141,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _thirdPersonMovement: {fileID: 412484226}
+  _health: {fileID: 412484231}
 --- !u!114 &412484231
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2147,7 +2152,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1024875717}
-  m_LocalRotation: {x: 0.15920097, y: -8.630958e-15, z: 6.854048e-16, w: 0.9872462}
+  m_LocalRotation: {x: 0.15920094, y: 0.000000032895052, z: -0.0000000053045768, w: 0.9872462}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
