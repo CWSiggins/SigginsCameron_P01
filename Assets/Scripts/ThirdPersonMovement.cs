@@ -39,6 +39,16 @@ public class ThirdPersonMovement : MonoBehaviour
     [SerializeField] Stamina _stamina;
     [SerializeField] Bullet _bullet;
 
+    [SerializeField] ParticleSystem _damageParticles;
+    [SerializeField] ParticleSystem _blockParticles;
+    [SerializeField] ParticleSystem _landingParticles;
+    [SerializeField] ParticleSystem _sprintingParticles;
+
+    [SerializeField] AudioClip _damageSound;
+    [SerializeField] AudioClip _blockSound;
+    [SerializeField] AudioClip _jumpSound;
+
+
     public Transform CurrentTarget { get; private set; }
 
     float _turnSmoothVelocity = 0f;
@@ -125,7 +135,7 @@ public class ThirdPersonMovement : MonoBehaviour
             CheckIfStartedMoving();
             float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + cam.eulerAngles.y;
             float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref _turnSmoothVelocity, _turnSmoothTime);
-            transform.rotation = Quaternion.Euler(0f, targetAngle, 0f);
+            transform.rotation = Quaternion.Euler(0f, angle, 0f);
 
             Vector3 moveDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
             if (Input.GetKey(KeyCode.LeftShift))
@@ -263,6 +273,10 @@ public class ThirdPersonMovement : MonoBehaviour
         {
             StartSprinting?.Invoke();
             Debug.Log("Sprinting");
+            if (_sprintingParticles != null)
+            {
+                _sprintingParticles.Play();
+            }
         }
         _isSprinting = true;
     }
@@ -284,6 +298,14 @@ public class ThirdPersonMovement : MonoBehaviour
         {
             StartJumping?.Invoke();
             Debug.Log("Jumped");
+            if (_landingParticles != null)
+            {
+                _landingParticles.Play();
+            }
+            if(_jumpSound != null)
+            {
+                AudioHelper.PlayClip2D(_jumpSound, 1f);
+            }
         }
         _allowJump = false;
     }
@@ -316,6 +338,14 @@ public class ThirdPersonMovement : MonoBehaviour
         {
             Damaged?.Invoke();
             Debug.Log("Damaged");
+            if (_damageParticles != null)
+            {
+                _damageParticles.Play();
+            }
+            if (_damageSound != null)
+            {
+                AudioHelper.PlayClip2D(_damageSound, 1f);
+            }
         }
         _health._playerDamaged = false;
         _isDamaged = true;
@@ -330,6 +360,14 @@ public class ThirdPersonMovement : MonoBehaviour
         if (_stamina._playerBlocked && _isAttacking == false)
         {
             DamageBlocked?.Invoke();
+            if (_blockParticles != null)
+            {
+                _blockParticles.Play();
+            }
+            if (_blockSound != null)
+            {
+                AudioHelper.PlayClip2D(_blockSound, 1f);
+            }
         }
         _stamina._playerBlocked = false;
     }
@@ -343,7 +381,7 @@ public class ThirdPersonMovement : MonoBehaviour
 
     IEnumerator Damage()
     {
-        yield return new WaitForSeconds(1.0f);
+        yield return new WaitForSeconds(0.8f);
         Idle?.Invoke();
     }
 }

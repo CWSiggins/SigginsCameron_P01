@@ -8,7 +8,7 @@ public class EnemyHealth : MonoBehaviour
     public GameObject _target;
 
     [SerializeField] ParticleSystem _impactParticles;
-    [SerializeField] AudioSource _impactAudio;
+    [SerializeField] AudioClip _enemySound;
 
     public void Damage(int amount)
     {
@@ -30,9 +30,9 @@ public class EnemyHealth : MonoBehaviour
             _impactParticles.Play();
         }
         //audio
-        if (_impactAudio != null)
+        if (_enemySound != null)
         {
-            _impactAudio.Play();
+            AudioHelper.PlayClip2D(_enemySound, 1f);
         }
     }
 

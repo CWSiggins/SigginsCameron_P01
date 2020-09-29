@@ -12,6 +12,11 @@ public class Health : MonoBehaviour
     
     [SerializeField] int _maxHealth = 100;
 
+    [SerializeField] ParticleSystem _damageParticles;
+
+    [SerializeField] AudioClip _killSound;
+    [SerializeField] AudioClip _overSound;
+
     public int _currentHealth;
     public bool _playerDamaged = false;
 
@@ -40,8 +45,18 @@ public class Health : MonoBehaviour
     public void Kill()
     {
         CheckIfDead();
-        _healthBar.value = 0;
-        //play feedback
+        if (_damageParticles != null)
+        {
+            _damageParticles.Play();
+        }
+        if (_killSound != null)
+        {
+            AudioHelper.PlayClip2D(_killSound, 1f);
+        }
+        if (_overSound != null)
+        {
+            AudioHelper.PlayClip2D(_overSound, 1f);
+        }
     }
 
     public void CheckIfDead()

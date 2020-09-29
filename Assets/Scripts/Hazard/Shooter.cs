@@ -39,7 +39,7 @@ public class Shooter : MonoBehaviour
             Rigidbody _bullet = (Rigidbody)Instantiate(_projectile, transform.position + transform.forward, transform.rotation);
             _bullet.AddForce(transform.forward * _bulletImpulse, ForceMode.Impulse);
 
-            Destroy(_bullet.gameObject, 2);
+            Destroy(_bullet.gameObject, 1);
         }
     }
 }
